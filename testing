@@ -50,9 +50,9 @@ function NexamHub:CreateWindow(title, subtext)
     -- Initialize tabs
     self.Tabs = {}
     
-    -- Parent to PlayerGui
-    self.Frame.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    print("Window created and parented to PlayerGui")
+    -- Parent to CoreGui
+    self.Frame.Parent = game:GetService("CoreGui")
+    print("Window created and parented to CoreGui")
     
     return self
 end

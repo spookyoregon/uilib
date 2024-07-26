@@ -1,125 +1,131 @@
 local NexamHub = {}
+NexamHub.__index = NexamHub
 
--- Utility function to create UI elements
-local function createUIElement(elementType, properties, children)
-    local element = Instance.new(elementType)
-    for property, value in pairs(properties) do
-        element[property] = value
+local function makeDraggable(frame)
+    local Drag = frame
+    local gsTween = game:GetService("TweenService")
+    local UserInputService = game:GetService("UserInputService")
+    local dragging, dragInput, dragStart, startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        local dragTime = 0.04
+        local SmoothDrag = {}
+        SmoothDrag.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        local dragSmoothFunction = gsTween:Create(Drag, TweenInfo.new(dragTime, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), SmoothDrag)
+        dragSmoothFunction:Play()
     end
-    for _, child in pairs(children or {}) do
-        child.Parent = element
-    end
-    return element
+
+    Drag.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = Drag.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    Drag.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging and Drag.Size then
+            update(input)
+        end
+    end)
 end
-
--- Main Window class
-local Window = {}
-Window.__index = Window
 
 function NexamHub:CreateWindow(title, subtext)
-    local self = setmetatable({}, Window)
-    
-    print("Creating window with title: " .. title)
-    
-    -- Create the ScreenGui
-    self.ScreenGui = Instance.new("ScreenGui")
-    self.ScreenGui.Name = "NexamHubGui"
-    self.ScreenGui.Parent = game:GetService("CoreGui")
-    
-    -- Create the main window frame
-    self.Frame = createUIElement("Frame", {
-        Size = UDim2.new(0, 400, 0, 300),
-        Position = UDim2.new(0.5, -200, 0.5, -150),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        Parent = self.ScreenGui
-    })
+    local screenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+    screenGui.Name = "NexamHubUI"
 
-    -- Create the title and subtext
-    local Title = createUIElement("TextLabel", {
-        Text = title,
-        Size = UDim2.new(1, 0, 0, 50),
-        BackgroundTransparency = 1,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        Parent = self.Frame
-    })
+    local window = Instance.new("Frame", screenGui)
+    window.Name = "Window"
+    window.Size = UDim2.new(0, 534, 0, 357)
+    window.Position = UDim2.new(0.317359865, 0, 0.10104987, 0)
+    window.BackgroundColor3 = Color3.new(0.0980392, 0.0980392, 0.0980392)
+    window.AnchorPoint = Vector2.new(0, 0)
+    window.BorderSizePixel = 0
+    window.BackgroundTransparency = 0
+    window.Visible = true
+    window.Active = true
+    makeDraggable(window)
 
-    local Subtext = createUIElement("TextLabel", {
-        Text = subtext,
-        Size = UDim2.new(1, 0, 0, 25),
-        Position = UDim2.new(0, 0, 0, 50),
-        BackgroundTransparency = 1,
-        TextColor3 = Color3.fromRGB(200, 200, 200),
-        Parent = self.Frame
-    })
+    local sidebar = Instance.new("Frame", window)
+    sidebar.Name = "Sidebar"
+    sidebar.Size = UDim2.new(0, 138, 0, 357)
+    sidebar.Position = UDim2.new(0, 0, 0, 0)
+    sidebar.BackgroundColor3 = Color3.new(0.133333, 0.133333, 0.133333)
+    sidebar.AnchorPoint = Vector2.new(0, 0)
+    sidebar.BorderSizePixel = 0
+    sidebar.BackgroundTransparency = 0
+    sidebar.Visible = true
+    sidebar.Active = false
 
-    -- Initialize tabs
-    self.Tabs = {}
-    
-    print("Window created and parented to ScreenGui in CoreGui")
-    
-    return self
+    local titleLabel = Instance.new("TextLabel", window)
+    titleLabel.Name = "Title"
+    titleLabel.Size = UDim2.new(0, 86, 0, 21)
+    titleLabel.Position = UDim2.new(0.0619564317, 0, 0.0364145674, 0)
+    titleLabel.BackgroundColor3 = Color3.new(1, 1, 1)
+    titleLabel.AnchorPoint = Vector2.new(0, 0)
+    titleLabel.BorderSizePixel = 0
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Visible = true
+    titleLabel.Active = false
+    titleLabel.Text = title
+
+    local windowObject = setmetatable({window = window, sidebar = sidebar}, NexamHub)
+    return windowObject
 end
 
-function Window:CreateTab(tabName, imageId)
-    local Tab = {}
-    Tab.__index = Tab
-    
-    print("Creating tab with name: " .. tabName)
-    
-    -- Create tab button
-    Tab.Frame = createUIElement("Frame", {
-        Size = UDim2.new(1, 0, 0, 50),
-        BackgroundTransparency = 1,
-        Parent = self.Frame
-    })
+function NexamHub:CreateTab(tabname, imageId)
+    local tabButton = Instance.new("TextButton", self.sidebar)
+    tabButton.Name = tabname
+    tabButton.Size = UDim2.new(0, 73, 0, 24)
+    tabButton.Position = UDim2.new(0.119927451, 0, 0.142857224, 0)
+    tabButton.BackgroundColor3 = Color3.new(1, 1, 1)
+    tabButton.AnchorPoint = Vector2.new(0, 0)
+    tabButton.BorderSizePixel = 0
+    tabButton.BackgroundTransparency = 1
+    tabButton.Visible = true
+    tabButton.Active = false
+    tabButton.Text = tabname
 
-    local Button = createUIElement("TextButton", {
-        Text = tabName,
-        Size = UDim2.new(1, -50, 1, 0),
-        Position = UDim2.new(0, 50, 0, 0),
-        BackgroundTransparency = 1,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        Parent = Tab.Frame
-    })
+    local tabFrame = Instance.new("Frame", self.window)
+    tabFrame.Name = tabname .. "Frame"
+    tabFrame.Size = UDim2.new(0, 396, 0, 357)
+    tabFrame.Position = UDim2.new(0.25, 0, 0, 0)
+    tabFrame.BackgroundColor3 = Color3.new(1, 1, 1)
+    tabFrame.Visible = false
 
-    local Icon = createUIElement("ImageLabel", {
-        Image = "rbxassetid://" .. tostring(imageId),
-        Size = UDim2.new(0, 50, 0, 50),
-        BackgroundTransparency = 1,
-        Parent = Tab.Frame
-    })
+    local tabObject = {tabButton = tabButton, tabFrame = tabFrame}
+    tabButton.MouseButton1Click:Connect(function()
+        for _, v in ipairs(self.window:GetChildren()) do
+            if v:IsA("Frame") and v.Name:match("Frame") then
+                v.Visible = false
+            end
+        end
+        tabFrame.Visible = true
+    end)
 
-    -- Initialize UI components
-    Tab.Components = {}
-    
-    -- Function to add a button
-    function Tab:AddButton(buttonText, callback)
-        print("Adding button with text: " .. buttonText)
-        local Button = createUIElement("TextButton", {
-            Text = buttonText,
-            Size = UDim2.new(1, 0, 0, 50),
-            BackgroundColor3 = Color3.fromRGB(50, 50, 50),
-            TextColor3 = Color3.fromRGB(255, 255, 255)
-        })
-        Button.Parent = self.Frame
-        
-        Button.MouseButton1Click:Connect(callback)
-        
-        table.insert(self.Components, Button)
-        return Button
+    function tabObject:AddButton(buttonText, callback)
+        local button = Instance.new("TextButton", tabFrame)
+        button.Name = buttonText
+        button.Size = UDim2.new(0, 200, 0, 50)
+        button.Position = UDim2.new(0.5, 0, 0.5, 0)
+        button.AnchorPoint = Vector2.new(0.5, 0.5)
+        button.Text = buttonText
+        button.MouseButton1Click:Connect(callback)
     end
 
-    -- Add other component methods (AddSlider, AddToggle, etc.) similarly
-
-    table.insert(self.Tabs, Tab)
-    return Tab
+    return tabObject
 end
 
--- Load the library and expose the main functions
-local function loadLibrary()
-    print("NexamHub library loaded")
-    return NexamHub
-end
-
-return loadLibrary()
+return NexamHub

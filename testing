@@ -19,6 +19,8 @@ Window.__index = Window
 function NexamHub:CreateWindow(title, subtext)
     local self = setmetatable({}, Window)
     
+    print("Creating window with title: " .. title)
+    
     -- Create the main window frame
     self.Frame = createUIElement("Frame", {
         Size = UDim2.new(0, 400, 0, 300),
@@ -50,13 +52,16 @@ function NexamHub:CreateWindow(title, subtext)
     
     -- Parent to PlayerGui
     self.Frame.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-
+    print("Window created and parented to PlayerGui")
+    
     return self
 end
 
 function Window:CreateTab(tabName, imageId)
     local Tab = {}
     Tab.__index = Tab
+    
+    print("Creating tab with name: " .. tabName)
     
     -- Create tab button
     Tab.Frame = createUIElement("Frame", {
@@ -86,6 +91,7 @@ function Window:CreateTab(tabName, imageId)
     
     -- Function to add a button
     function Tab:AddButton(buttonText, callback)
+        print("Adding button with text: " .. buttonText)
         local Button = createUIElement("TextButton", {
             Text = buttonText,
             Size = UDim2.new(1, 0, 0, 50),
@@ -108,6 +114,7 @@ end
 
 -- Load the library and expose the main functions
 local function loadLibrary()
+    print("NexamHub library loaded")
     return NexamHub
 end
 

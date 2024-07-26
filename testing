@@ -1,0 +1,114 @@
+local NexamHub = {}
+
+-- Utility function to create UI elements
+local function createUIElement(elementType, properties, children)
+    local element = Instance.new(elementType)
+    for property, value in pairs(properties) do
+        element[property] = value
+    end
+    for _, child in pairs(children or {}) do
+        child.Parent = element
+    end
+    return element
+end
+
+-- Main Window class
+local Window = {}
+Window.__index = Window
+
+function NexamHub:CreateWindow(title, subtext)
+    local self = setmetatable({}, Window)
+    
+    -- Create the main window frame
+    self.Frame = createUIElement("Frame", {
+        Size = UDim2.new(0, 400, 0, 300),
+        Position = UDim2.new(0.5, -200, 0.5, -150),
+        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        AnchorPoint = Vector2.new(0.5, 0.5)
+    })
+
+    -- Create the title and subtext
+    local Title = createUIElement("TextLabel", {
+        Text = title,
+        Size = UDim2.new(1, 0, 0, 50),
+        BackgroundTransparency = 1,
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        Parent = self.Frame
+    })
+
+    local Subtext = createUIElement("TextLabel", {
+        Text = subtext,
+        Size = UDim2.new(1, 0, 0, 25),
+        Position = UDim2.new(0, 0, 0, 50),
+        BackgroundTransparency = 1,
+        TextColor3 = Color3.fromRGB(200, 200, 200),
+        Parent = self.Frame
+    })
+
+    -- Initialize tabs
+    self.Tabs = {}
+    
+    -- Parent to PlayerGui
+    self.Frame.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+    return self
+end
+
+function Window:CreateTab(tabName, imageId)
+    local Tab = {}
+    Tab.__index = Tab
+    
+    -- Create tab button
+    Tab.Frame = createUIElement("Frame", {
+        Size = UDim2.new(1, 0, 0, 50),
+        BackgroundTransparency = 1,
+        Parent = self.Frame
+    })
+
+    local Button = createUIElement("TextButton", {
+        Text = tabName,
+        Size = UDim2.new(1, -50, 1, 0),
+        Position = UDim2.new(0, 50, 0, 0),
+        BackgroundTransparency = 1,
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        Parent = Tab.Frame
+    })
+
+    local Icon = createUIElement("ImageLabel", {
+        Image = "rbxassetid://" .. tostring(imageId),
+        Size = UDim2.new(0, 50, 0, 50),
+        BackgroundTransparency = 1,
+        Parent = Tab.Frame
+    })
+
+    -- Initialize UI components
+    Tab.Components = {}
+    
+    -- Function to add a button
+    function Tab:AddButton(buttonText, callback)
+        local Button = createUIElement("TextButton", {
+            Text = buttonText,
+            Size = UDim2.new(1, 0, 0, 50),
+            BackgroundColor3 = Color3.fromRGB(50, 50, 50),
+            TextColor3 = Color3.fromRGB(255, 255, 255)
+        })
+        Button.Parent = self.Frame
+        
+        Button.MouseButton1Click:Connect(callback)
+        
+        table.insert(self.Components, Button)
+        return Button
+    end
+
+    -- Add other component methods (AddSlider, AddToggle, etc.) similarly
+
+    table.insert(self.Tabs, Tab)
+    return Tab
+end
+
+-- Load the library and expose the main functions
+local function loadLibrary()
+    return NexamHub
+end
+
+return loadLibrary()
